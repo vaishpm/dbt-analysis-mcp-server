@@ -131,6 +131,13 @@ Call `create_visualization`:
 Check `list_dashboards` first. If a relevant one exists, add a widget to it.
 Otherwise call `create_dashboard`, then `create_widget`.
 
+**Widget creation order matters.** Redash displays widgets in the order they are created. Always create widgets in this order:
+1. KPI counters first (width 2, left to right)
+2. Full-width time-series charts next (width 6)
+3. Supporting charts and tables last (width 6)
+
+This ensures the dashboard layout is correct without needing manual drag-and-drop in the UI.
+
 ---
 
 ## Key Metric Definitions
