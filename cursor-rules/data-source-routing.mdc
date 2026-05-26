@@ -1,0 +1,47 @@
+---
+description: Which schema/table to use for each B2B marketplace data topic
+alwaysApply: true
+---
+
+# Data Source Routing
+
+## Quick routing table
+
+| Topic | Table |
+|-------|-------|
+| UV, PSERP, organic search, user growth | `metrics_layer.ga_user_metrics` |
+| Daily platform/origin growth, engagement, registrations | `metrics_layer.daily_user_growth_metrics` |
+| Monthly global order intake | `metrics_layer.global_order_intake` |
+| Supplier recommendation metrics | `metrics_layer.supplier_recommendations_monthly_agg` |
+| Lead management, dispatched leads, lead funnel | `metrics_layer.leads_insights` |
+| Active Buyers (AB / AB2) | `metrics_layer.active_buyers` |
+| Offers / products | `supplier_offers.offers` |
+| Listings, companies, suppliers | `companies.companies` |
+| Category hierarchy and labels | `ontology.cpv_categories`, `ontology.cpv_category_tree` |
+| Company-to-CPV category mapping | `ontology.company_category_cpv_mapping` |
+| Vertical / category rollups | `ontology.cpv_vertical_mapping` |
+| Cross-domain ID bridging | `references.ref_identifiers_bridge` |
+| Direct requests | `reporting.fact_direct_requests` |
+| RFQ requests and messages | `reporting.fact_request_for_quotes` |
+| High-relevance requests (QDR + RFQ combined) | `reporting.fact_rfq_qdr_requests` |
+| Customers in need / customer RFQ status | `reporting.mv_customer_rfq_status` |
+| Supplier platform engagement | `reporting.fact_supplier_activity` |
+| GA/GBQ event-level tracking | `reporting.fact_gbq_events` |
+| GA/GBQ pageview-level tracking | `reporting.fact_gbq_pageviews` |
+| GA/GBQ session-level tracking | `reporting.fact_gbq_sessions` |
+| UV assembled from events/pageviews/sessions | `reporting.fact_gbq_visitor_sessions` |
+| Google Ads | `reporting.fact_gads_campaign`, `reporting.fact_gads_conversion` |
+| HubSpot CRM | `reporting.fact_hubspot_companies`, `reporting.fact_hubspot_contacts`, etc. |
+
+## Key field and filter rules
+
+- `companies.companies`: filter `is_deleted = false` by default; use `supplier_facts_uuid` as primary join key; `platform_ep` / `platform_wlw` for platform membership
+- `supplier_offers.offers`: filter `delete_time IS NULL` for active offers; `publish_time IS NOT NULL` for published offers; `supplier_id` links to `companies.companies.supplier_facts_uuid`
+- `references.ref_identifiers_bridge`: use `wlw_supplier_facts_uuid`, `ep_supplier_facts_uuid`, `customer_id`, `accounts_id`, `europages_id`, `company_id` to bridge IDs; `industry_en` / `industry_de` / `industry_fr` for industry labels
+- `reporting.fact_rfq_qdr_requests`: use `is_rfq_self_match`, `is_rfq_auto_match`, `is_qdr` to distinguish event types; count `matching_id` for RFQ match events, `direct_request_id` for QDR events
+- GBQ tracking facts: always filter by `date`, set `trafficsource = 'external'`, restrict `hostname` to `%wlw%` or `%europages%`; join to `reporting.dim_*` tables via `_sk` surrogate keys
+
+## Hard rules
+- Never query raw or staging tables — only `metrics_layer`, `reporting`, `companies`, `supplier_offers`, `ontology`, and `references`
+- If two models could answer the question, name both and ask the user to confirm before writing SQL
+- `companies.listings` and `companies.revisions` are old/deprecated — avoid for new analysis

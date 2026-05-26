@@ -1,0 +1,30 @@
+---
+description: How Unique Visitors (UV) are defined and queried
+alwaysApply: true
+---
+
+# Unique Visitors (UV) Metric Definition
+
+## Source table
+`metrics_layer.ga_user_metrics` on the Production Redshift data source (Redash data source ID: 1).
+
+## Definition
+**UV / Unique Visitors** — distinct visitors in the requested period, identified by `visitor_sk`.
+
+## SQL pattern
+```sql
+SELECT
+  DATE_TRUNC('month', date) AS month,
+  platform,
+  COUNT(DISTINCT visitor_sk)  AS unique_visitors
+FROM metrics_layer.ga_user_metrics
+WHERE visitor_sk IS NOT NULL
+GROUP BY 1, 2
+ORDER BY 1, 2
+```
+
+## Key rules
+- For any UV or Unique Visitors question, always use `metrics_layer.ga_user_metrics` — never the GBQ raw fact tables
+- Always `COUNT(DISTINCT visitor_sk)` — a visitor counts once per period
+- Filter `visitor_sk IS NOT NULL` to exclude unidentified sessions
+- Group by `platform` when the user asks for EP/WLW or platform splits

@@ -1,0 +1,38 @@
+---
+description: Supplier-facts schema — companies.* table guide
+alwaysApply: true
+---
+
+# Supplier-Facts Schema (`companies.*`)
+
+## Primary table
+`companies.companies` — always start here for supplier/company questions.
+- Join key: `supplier_facts_uuid`
+- Always filter `is_deleted = false` unless the user explicitly wants deleted companies
+- Platform membership: `platform_ep`, `platform_wlw`
+- Industry: `main_business_area`
+
+## Supporting tables
+
+| Table | Contains |
+|-------|----------|
+| `companies.communication` | Phone numbers and email addresses |
+| `companies.contact_information` | Detailed communication data for individual contacts |
+| `companies.contacts` | Contact people associated with supplier companies |
+| `companies.description` | Multilingual company descriptions |
+| `companies.media` | Supplier images, documents, and videos |
+| `companies.references` | Supplier reference/contact information |
+| `companies.websites` | Website URLs, titles, and source details |
+| `companies.company_revisions` | Change history for supplier facts data |
+
+## Deprecated — avoid for new analysis
+- `companies.listings` — old; use only for preservation/backfill work
+- `companies.revisions` — expected to be deleted; do not use
+
+## Offers
+For offer/product data use `supplier_offers.offers`:
+- `id` = offer ID
+- `supplier_id` links to `companies.companies.supplier_facts_uuid`
+- Active offers: `delete_time IS NULL`
+- Published offers: `publish_time IS NOT NULL`
+- CPV fields: `cpv_category_id`, `data_cpv`, `data_company_category_id`, `data_ontology_concept_id`

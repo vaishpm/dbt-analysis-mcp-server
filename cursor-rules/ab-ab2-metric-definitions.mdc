@@ -1,0 +1,33 @@
+---
+description: How AB and AB2 metrics are defined and calculated
+alwaysApply: true
+---
+
+# AB & AB2 Metric Definitions
+
+## Source table
+`metrics_layer.active_buyers` on the Production Redshift data source (Redash data source ID: 1).
+
+**Data availability:** tracking starts from `2024-11-01` — do not query before this date.
+
+**Grain:** one row per buyer / platform / request activity per day; captures platform, request origin, and request type.
+
+## Definitions
+- **AB** — distinct buyers who submitted at least one active buyer request in the period.
+- **AB2** — distinct buyers whose request received a positive reply (`is_ab2 = true`).
+
+## SQL pattern
+```sql
+SELECT
+  DATE_TRUNC('month', date)                                 AS month,
+  COUNT(DISTINCT buyer_id)                                  AS ab,
+  COUNT(DISTINCT CASE WHEN is_ab2 = true THEN buyer_id END) AS ab2
+FROM metrics_layer.active_buyers
+GROUP BY 1
+ORDER BY 1
+```
+
+## Key rules
+- Always use `COUNT(DISTINCT buyer_id)` — each buyer counts once per period regardless of how many requests they sent.
+- `is_ab2` is a boolean column; no join to another table is needed.
+- `FILTER (WHERE ...)` is not supported in Redshift — use `CASE WHEN ... THEN buyer_id END` inside `COUNT(DISTINCT ...)` instead.
