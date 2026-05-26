@@ -80,8 +80,8 @@ Use this only when analysts already have local access to the dbt project and war
 
 ### Admin Setup
 
-1. Create an internal Git repository, for example `analytics/dbt-analysis-mcp-server`.
-2. Push this project to that repository.
+1. Fork or clone from [github.com/vaishpm/dbt-analysis-mcp-server](https://github.com/vaishpm/dbt-analysis-mcp-server) into an internal repository if desired, or use it directly.
+2. Ensure your internal copy is accessible to all users who need it.
 3. Keep `.env.example`, `config/cursor.local.example.json`, and docs committed.
 4. Do not commit `.env`, profiles, tokens, or warehouse credentials.
 5. Decide whether `ALLOW_DBT_RUN` should stay disabled for local users.
@@ -89,7 +89,7 @@ Use this only when analysts already have local access to the dbt project and war
 ### User Setup
 
 ```bash
-git clone git@github.com:your-org/dbt-analysis-mcp-server.git
+git clone git@github.com:vaishpm/dbt-analysis-mcp-server.git
 cd dbt-analysis-mcp-server
 scripts/install-local.sh
 ```

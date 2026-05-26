@@ -121,7 +121,7 @@ Use this only if you are running the MCP server on your own machine.
 ### 1. Install
 
 ```bash
-git clone git@github.com:your-org/dbt-analysis-mcp-server.git
+git clone git@github.com:vaishpm/dbt-analysis-mcp-server.git
 cd dbt-analysis-mcp-server
 scripts/install-local.sh
 ```
