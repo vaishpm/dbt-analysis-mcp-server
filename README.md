@@ -72,34 +72,6 @@ Create a Redash query showing weekly AB and AB2 trends for the last 3 months.
 
 ---
 
-## Cursor Setup
-
-Open Cursor Settings → MCP and add:
-
-```json
-{
-  "mcpServers": {
-    "dbt": {
-      "url": "https://<your-subdomain>.eu1.dbt.com/api/ai/v1/mcp/",
-      "headers": {
-        "Authorization": "Token <your-dbt-personal-access-token>",
-        "x-dbt-prod-environment-id": "<your-prod-environment-id>"
-      }
-    },
-    "redash": {
-      "command": "npx",
-      "args": ["-y", "@suthio/redash-mcp"],
-      "env": {
-        "REDASH_URL": "https://redash.your-company.example/",
-        "REDASH_API_KEY": "<your-redash-api-key>"
-      }
-    }
-  }
-}
-```
-
----
-
 ## What Codex can do for you
 
 | Ask Codex | What happens |
