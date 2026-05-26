@@ -1,0 +1,90 @@
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg: #0f1117;
+  --surface: #1a1d27;
+  --surface-2: #22263a;
+  --border: #2e3350;
+  --accent: #6366f1;
+  --accent-hover: #818cf8;
+  --text: #e2e8f0;
+  --text-muted: #8892a4;
+  --user-bubble: #1e3a5f;
+  --assistant-bubble: #1a1d27;
+  --code-bg: #0d1117;
+  --success: #22c55e;
+  --radius: 12px;
+  --font: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+  --mono: "SF Mono", "Fira Code", "Cascadia Code", Consolas, monospace;
+}
+
+html, body { height: 100%; }
+
+body {
+  font-family: var(--font);
+  background: var(--bg);
+  color: var(--text);
+  font-size: 15px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+/* Markdown inside assistant messages */
+.prose { line-height: 1.7; }
+.prose p { margin-bottom: 0.75em; }
+.prose p:last-child { margin-bottom: 0; }
+.prose h1, .prose h2, .prose h3 { font-weight: 600; margin: 1em 0 0.4em; }
+.prose ul, .prose ol { padding-left: 1.4em; margin-bottom: 0.75em; }
+.prose li { margin-bottom: 0.2em; }
+.prose strong { font-weight: 600; color: #fff; }
+.prose em { font-style: italic; }
+.prose code {
+  font-family: var(--mono);
+  font-size: 0.85em;
+  background: var(--code-bg);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 0.15em 0.4em;
+  color: #93c5fd;
+}
+.prose pre {
+  background: var(--code-bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 1em 1.2em;
+  overflow-x: auto;
+  margin: 0.75em 0;
+}
+.prose pre code {
+  background: none;
+  border: none;
+  padding: 0;
+  font-size: 0.82em;
+  color: #e2e8f0;
+}
+.prose table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.88em;
+  margin: 0.75em 0;
+}
+.prose th, .prose td {
+  border: 1px solid var(--border);
+  padding: 0.4em 0.8em;
+  text-align: left;
+}
+.prose th { background: var(--surface-2); font-weight: 600; }
+.prose tr:nth-child(even) { background: rgba(255,255,255,0.02); }
+.prose blockquote {
+  border-left: 3px solid var(--accent);
+  padding-left: 1em;
+  color: var(--text-muted);
+  margin: 0.75em 0;
+}
+.prose a { color: var(--accent-hover); text-decoration: underline; }
+.prose hr { border: none; border-top: 1px solid var(--border); margin: 1em 0; }

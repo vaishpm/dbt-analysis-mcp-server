@@ -1,0 +1,14 @@
+{
+  "buildCommand": "npm run build",
+  "outputDirectory": ".next",
+  "framework": "nextjs",
+  "env": {
+    "CURSOR_API_KEY": "@cursor-api-key",
+    "DBT_AUTH_HEADER": "@dbt-auth-header",
+    "DBT_PROD_ENV_ID": "@dbt-prod-env-id",
+    "DBT_MCP_URL": "@dbt-mcp-url",
+    "REDASH_URL": "@redash-url",
+    "REDASH_API_KEY": "@redash-api-key",
+    "INTERNAL_ACCESS_TOKEN": "@internal-access-token"
+  }
+}
