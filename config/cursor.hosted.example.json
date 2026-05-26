@@ -1,0 +1,7 @@
+{
+  "mcpServers": {
+    "dbt-analysis": {
+      "url": "https://dbt-analysis-mcp.your-company.example/mcp"
+    }
+  }
+}

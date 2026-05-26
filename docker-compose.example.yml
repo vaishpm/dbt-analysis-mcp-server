@@ -1,0 +1,16 @@
+services:
+  dbt-analysis-mcp:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      DBT_PROJECT_DIR: /workspace/dbt
+      DBT_PATH: dbt
+      DBT_TARGET: prod
+      DBT_DEFAULT_LIMIT: "100"
+      DBT_COMMAND_TIMEOUT_SECONDS: "120"
+      ALLOW_DBT_RUN: "false"
+    volumes:
+      # Server-side dbt assets. Cursor users only need the hosted MCP URL.
+      - /absolute/path/to/your/dbt/project:/workspace/dbt:ro
+      - ~/.dbt:/root/.dbt:ro
