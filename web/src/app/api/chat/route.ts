@@ -2,8 +2,17 @@ import { NextRequest } from "next/server";
 import { Agent, CursorAgentError, type McpServerConfig, type SDKMessage } from "@cursor/sdk";
 import path from "path";
 
-// Path to the repo root where AGENTS.md lives
+// Vercel serverless: allow up to 5 minutes for agent responses
+export const maxDuration = 300;
+
+// For local dev, point to the repo root where AGENTS.md lives
 const REPO_ROOT = process.env.REPO_ROOT ?? path.resolve(process.cwd(), "..");
+
+// Cloud runtime: repo the agent clones on Cursor-hosted VMs
+const GITHUB_REPO = process.env.GITHUB_REPO ?? "https://github.com/vaishpm/dbt-analysis-mcp-server";
+
+// Use cloud runtime on Vercel (no Cursor app installed), local runtime otherwise
+const USE_CLOUD = Boolean(process.env.VERCEL || process.env.USE_CLOUD_RUNTIME);
 
 function buildMcpServers(): Record<string, McpServerConfig> {
   const servers: Record<string, McpServerConfig> = {};
@@ -62,6 +71,26 @@ async function streamRun(
   await send({ type: "done", status: result.status });
 }
 
+function buildAgentOptions(apiKey: string) {
+  const mcpServers = buildMcpServers();
+  const base = { apiKey, model: { id: "composer-2.5" as const }, mcpServers };
+
+  if (USE_CLOUD) {
+    return {
+      ...base,
+      cloud: {
+        repos: [{ url: GITHUB_REPO }],
+        skipReviewerRequest: true,
+      },
+    };
+  }
+
+  return {
+    ...base,
+    local: { cwd: REPO_ROOT, settingSources: [] as [] },
+  };
+}
+
 export async function POST(req: NextRequest) {
   const { message, agentId } = (await req.json()) as {
     message: string;
@@ -83,10 +112,8 @@ export async function POST(req: NextRequest) {
     },
   });
   const writer = stream.writable.getWriter();
-
   const send = (data: object) => writer.write(encode(data));
 
-  // Run agent async — stream result back via SSE
   (async () => {
     try {
       const mcpServers = buildMcpServers();
@@ -97,12 +124,7 @@ export async function POST(req: NextRequest) {
         const run = await agent.send(message);
         await streamRun(run, writer);
       } else {
-        await using agent = await Agent.create({
-          apiKey,
-          model: { id: "composer-2.5" },
-          local: { cwd: REPO_ROOT, settingSources: [] },
-          mcpServers,
-        });
+        await using agent = await Agent.create(buildAgentOptions(apiKey));
         await send({ type: "agent_id", agentId: agent.agentId });
         const run = await agent.send(message);
         await streamRun(run, writer);
