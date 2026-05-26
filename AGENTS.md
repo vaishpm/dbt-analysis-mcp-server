@@ -97,11 +97,105 @@ Otherwise call `create_dashboard`, then `create_widget`.
 
 ## Key Metric Definitions
 
+### Source Routing Rules
+
+| Topic | Table |
+|-------|-------|
+| Metrics-layer self-service | `metrics_layer` schema |
+| Reporting facts and dimensions | `reporting` schema |
+| Offers / products | `supplier_offers.offers` |
+| Listings, companies, suppliers | `companies.companies` |
+| Category questions | `ontology` schema and its CPV tables |
+| Industry | `main_business_area` in `companies.companies` |
+| Cross-domain ID bridging | `references.ref_identifiers_bridge` |
+
+**Table-specific rules:**
+
+- `metrics_layer.ga_user_metrics` — UV, PSERP, organic search, and related traffic/user-growth questions
+- `metrics_layer.daily_user_growth_metrics` — aggregated daily platform/origin user growth, engagement, search, and registration KPIs
+- `metrics_layer.global_order_intake` — monthly global order intake, customer info, order details, OI type/subtype, CA/CD/CS managers, and payment method
+- `metrics_layer.supplier_recommendations_monthly_agg` — monthly aggregated supplier recommendation metrics
+- `metrics_layer.leads_insights` — lead management reporting: dispatched leads, lead funnel, touch points, and lead class
+- In `supplier_offers.offers`, `id` is the offer ID and `supplier_id` links to supplier/company identifiers such as `companies.companies.supplier_facts_uuid`
+- For active/current offers, filter `delete_time IS NULL`; use `publish_time IS NOT NULL` when the question is about published offers
+- Offer/product CPV fields: `cpv_category_id`, `data_cpv`, `data_company_category_id`, `data_ontology_concept_id`
+- In `companies.companies`, use `supplier_facts_uuid` as the primary supplier/company join key when available
+- In `companies.companies`, filter `is_deleted = false` unless the user explicitly asks for deleted companies
+- In `companies.companies`, use `platform_ep` and `platform_wlw` for EP/WLW platform membership
+- In `companies.listings`, `supplier_facts_uuid` links listings to companies and `category_id` is the listing category
+- For category hierarchy and labels, prefer `ontology.cpv_categories`, `ontology.cpv_category_tree`, `ontology.cpv_relationships`, `ontology.cpv_properties`, and `ontology.cpv_values`
+- To map company/listing categories into CPV, use `ontology.company_category_cpv_mapping` (`company_category_id`, `cpv_top_category_id`, `cpv_leaf_category_id`, `mapping_type`)
+- For vertical/category rollups, use `ontology.cpv_vertical_mapping`, `ontology.fact_category_vertical_listings`, or `ontology.fact_company_vertical_rank` as appropriate
+- In `references.ref_identifiers_bridge`, use `wlw_supplier_facts_uuid`, `ep_supplier_facts_uuid`, `customer_id`, `accounts_id`, `europages_id`, and `company_id` to bridge IDs
+- In `references.ref_identifiers_bridge`, `industry`, `industry_en`, `industry_de`, and `industry_fr` provide industry labels; `published` identifies published bridge records
+
+**Reporting schema rules:**
+
+- Google Analytics/GBQ tracking event-level analysis → `reporting.fact_gbq_events`
+- Pageview-level tracking analysis → `reporting.fact_gbq_pageviews`
+- Session-level tracking analysis → `reporting.fact_gbq_sessions`
+- UV logic assembled from events, pageviews, and sessions → `reporting.fact_gbq_visitor_sessions`
+- When querying large GBQ tracking facts: always filter by date, apply tight limits during exploration, filter `trafficsource = 'external'`, and restrict hostname to WLW or Europages (e.g. `%wlw%` or `%europages%`)
+- GBQ tracking facts use surrogate keys; join to matching `reporting.dim_*` tables with the corresponding `_sk` columns
+- Supplier platform engagement/operational behavior → `reporting.fact_supplier_activity`
+- Direct requests → `reporting.fact_direct_requests`
+- RFQ requests and messages → `reporting.fact_request_for_quotes`
+- Recommended suppliers on RFQs → `reporting.fact_recommended_supplier`
+- QDR-to-RFQ analysis → `reporting.fact_qdr_to_rfq`
+- Total high-relevance requests (QDR + RFQ) → `reporting.fact_rfq_qdr_requests`
+- Customers in need or customer RFQ status → `reporting.mv_customer_rfq_status`
+- In `reporting.fact_rfq_qdr_requests`, distinguish event types with `is_rfq_self_match`, `is_rfq_auto_match`, and `is_qdr`; count `matching_id` for RFQ match events and `direct_request_id` for QDR events
+
+**Supplier-facts schema rules:**
+
+- `companies.communication` — supplier communication details (phone numbers, email addresses)
+- `companies.company_revisions` — change history for supplier facts company data
+- `companies.contact_information` — detailed communication data for individual contacts
+- `companies.contacts` — contact people associated with supplier companies
+- `companies.description` — multilingual company descriptions
+- `companies.listings` — old; use only for preservation/backfill questions unless explicitly needed
+- `companies.media` — supplier images, documents, and videos
+- `companies.references` — supplier reference/contact information
+- `companies.revisions` — old and expected to be deleted; avoid for new analysis
+- `companies.websites` — supplier website information including URLs, titles, and source details
+
+**Marketing and CRM rules:**
+
+- Google Ads analysis → `reporting.fact_gads_campaign`, `reporting.fact_gads_conversion`
+- HubSpot analysis → `reporting.fact_hubspot_companies`, `reporting.fact_hubspot_contacts`, `reporting.fact_hubspot_emailevents`, `reporting.fact_hubspot_emailsubscriptionevents`, `reporting.fact_hubspot_feedback_submissions`, `reporting.fact_hubspot_tags`, `reporting.fact_hubspot_tickets`
+
+---
+
+### Unique Visitors (UV)
+Source table: `metrics_layer.ga_user_metrics`
+
+**UV / Unique Visitors** — distinct visitors in the requested period
+
+```sql
+SELECT
+  DATE_TRUNC('month', date) AS month,
+  platform,
+  COUNT(DISTINCT visitor_sk) AS unique_visitors
+FROM metrics_layer.ga_user_metrics
+WHERE visitor_sk IS NOT NULL
+GROUP BY 1, 2
+ORDER BY 1, 2
+```
+
+Rules:
+- For UV questions, always use `metrics_layer.ga_user_metrics`
+- Always `COUNT(DISTINCT visitor_sk)` — a visitor counts once per period
+- Group by `platform` when the user asks for EP/WLW or platform splits
+
+---
+
 ### Active Buyers (AB) and AB2
 Source table: `metrics_layer.active_buyers`
 
 - **AB** — distinct buyers who submitted at least one active buyer request in the period
 - **AB2** — distinct buyers whose request received a positive reply (`is_ab2 = true`)
+- The table starts tracking AB and AB2 from **2024-11-01**
+- Grain is buyer/platform/request activity per day; captures platform, request origin, and request type
 
 ```sql
 SELECT
@@ -122,7 +216,16 @@ Rules:
 
 ## Hard Rules
 
-- **Never query raw or staging tables** — only mart models
+- **Never query raw or staging tables** — use curated `metrics_layer`, `reporting`, `companies`, `supplier_offers`, `ontology`, and `references` tables
+- **For UV / Unique Visitors**, use `metrics_layer.ga_user_metrics`
+- **For offers/products**, use `supplier_offers.offers`
+- **For listings/companies/suppliers**, use `companies.companies`
+- **For categories**, use the `ontology` schema CPV tables
+- **For high-relevance request facts**, use `reporting.fact_rfq_qdr_requests`
+- **For customers in need or customer RFQ status**, use `reporting.mv_customer_rfq_status`
+- **Use `references.ref_identifiers_bridge`** when joining IDs across domains
+- **Filter deleted records by default**: `companies.companies.is_deleted = false`, `supplier_offers.offers.delete_time IS NULL`
+- **For GBQ tracking facts**, always filter date, `trafficsource = 'external'`, and hostname to WLW/Europages
 - **Always confirm grain before aggregating** — call `get_model_details` first
 - **Never commit credentials** — tokens and API keys stay in environment variables
 - **ALLOW_DBT_RUN is false by default** — do not attempt to run or build dbt models unless explicitly asked
