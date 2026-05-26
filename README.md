@@ -11,11 +11,21 @@ Works with two AI tools:
 
 ---
 
-## Codex Setup (one-time, ~5 minutes)
+## Codex Setup (one-time, ~2 minutes)
 
-### 1. Set your credentials
+### 1. Clone the repo and let Codex set itself up
 
-Add to `~/.zshrc` and run `source ~/.zshrc`:
+```bash
+git clone https://github.com/vaishpm/dbt-analysis-mcp-server
+cd dbt-analysis-mcp-server
+codex "set me up"
+```
+
+Codex reads `AGENTS.md` and runs `scripts/install.sh` automatically — it installs the Codex CLI (if needed), wires up dbt + Redash as MCP tools, and tells you exactly which credentials are still missing.
+
+### 2. Add missing credentials
+
+If prompted, add these to `~/.zshrc` and run `source ~/.zshrc`:
 
 ```bash
 export DBT_AUTH_HEADER="token <your-dbt-personal-access-token>"
@@ -25,19 +35,13 @@ export REDASH_API_KEY="<your-redash-api-key>"
 
 Ask the analytics team for these values if you don't have them.
 
-### 2. Run the installer
-
-```bash
-curl -fsSL https://raw.githubusercontent.com/vaishpm/dbt-analysis-mcp-server/main/scripts/install.sh | bash
-```
-
-This installs Codex CLI (if needed), wires up dbt + Redash as MCP tools, and copies `AGENTS.md` to `~/.codex/`.
-
 ### 3. Start working
 
 ```bash
 codex
 ```
+
+> **Requires Node.js.** If `codex` isn't found, install Node.js from https://nodejs.org first.
 
 ---
 

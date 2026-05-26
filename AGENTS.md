@@ -7,6 +7,44 @@ Use them together to answer business questions, build dashboards, and create reu
 
 ---
 
+## Self-Setup
+
+If the user says anything like "set me up", "install", "get me started", "configure this", or "onboard me", follow these steps:
+
+### Step 1 — Run the install script
+```bash
+bash scripts/install.sh
+```
+
+The script will:
+- Install Codex CLI if not already installed (requires Node.js)
+- Check for required environment variables
+- Wire up dbt and Redash as MCP tools
+- Copy this `AGENTS.md` to `~/.codex/`
+
+### Step 2 — Check for missing credentials
+If the script exits with missing env vars, tell the user exactly which ones are missing and give them the exact lines to add to `~/.zshrc`:
+
+```bash
+export DBT_AUTH_HEADER="token <your-dbt-personal-access-token>"
+export DBT_PROD_ENV_ID="<your-prod-environment-id>"
+export REDASH_API_KEY="<your-redash-api-key>"
+```
+
+Then tell them to run `source ~/.zshrc` and re-run `bash scripts/install.sh`.
+
+### Step 3 — Confirm success
+Once the script completes successfully, confirm:
+- Which MCP tools are now available (dbt, redash)
+- That they can start asking data questions right away
+- Give one example prompt they can try immediately, e.g.:
+  > "How many active buyers did we have last month, broken down by market?"
+
+### Step 4 — Check for Node.js if install fails
+If `codex` or `npm` is not found, tell the user to install Node.js from https://nodejs.org first, then re-run the setup.
+
+---
+
 ## Your Role
 
 You help product managers and analysts answer data questions by:
