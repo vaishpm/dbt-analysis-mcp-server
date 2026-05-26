@@ -1,116 +1,112 @@
-# dbt Analysis MCP Server
+# dbt + Redash MCP Config for Codex and Cursor
 
-Custom Python HTTP MCP server for dbt analysis workflows. It is intended as an internal, remote-like alternative to dbt's hosted MCP server when you want Cursor users to connect through one managed endpoint without each user needing dbt credentials on their laptop.
+Connect Codex CLI or Cursor to your dbt Cloud models and Redash dashboards — no local dbt install, no warehouse credentials, no profiles.yml.
 
-## Included Tools
+This repo contains:
+- `AGENTS.md` — Codex instructions that load automatically
+- `config/codex.example.toml` — Codex MCP wiring for dbt + Redash
+- `config/cursor.hosted.example.json` — Cursor MCP config for dbt
 
-- `dbt_list_resources`: list dbt models, sources, tests, metrics, exposures, and other resources.
-- `dbt_compile`: compile selected dbt SQL without running models.
-- `dbt_show`: preview selected dbt resources with a configurable row limit.
-- `dbt_test`: run selected dbt tests for data quality checks.
-- `dbt_source_freshness`: check source freshness.
-- `read_dbt_project_file`: read `.sql`, `.yml`, `.yaml`, or `.md` files inside the dbt project.
-- `dbt_run_analysis`: optional `dbt run`, disabled unless `ALLOW_DBT_RUN=true`.
+---
 
-## Recommended Setup: Hosted for Cursor
+## Codex Setup (recommended for PMs)
 
-For org rollout, see `docs/ORG_ROLLOUT.md`.
+### 1. Prerequisites
 
-In the recommended hosted setup:
+- Node.js installed
+- Codex CLI: `npm install -g @openai/codex`
+- Log in: `codex login`
+- Your **dbt Cloud personal access token** and **Redash API key** (ask the analytics team)
 
-- The server is deployed once by the analytics/admin team.
-- The dbt project, `profiles.yml`, and warehouse/dbt credentials live only on the server.
-- Cursor users configure a single HTTP MCP URL and do not need local dbt credentials.
-- `ALLOW_DBT_RUN=false` keeps the exposed tools analysis-oriented by default.
+### 2. Clone this repo
 
-Cursor MCP config for users:
+```bash
+git clone git@github.com:vaishpm/dbt-analysis-mcp-server.git
+cd dbt-analysis-mcp-server
+```
+
+### 3. Set credentials in your shell profile
+
+Add to `~/.zshrc` (or `~/.bashrc`):
+
+```bash
+export DBT_AUTH_HEADER="token <your-dbt-personal-access-token>"
+export DBT_PROD_ENV_ID="<your-prod-environment-id>"
+export REDASH_API_KEY="<your-redash-api-key>"
+```
+
+Then reload: `source ~/.zshrc`
+
+### 4. Copy the Codex config
+
+```bash
+mkdir -p ~/.codex
+cp config/codex.example.toml ~/.codex/config.toml
+```
+
+### 5. Copy the agent instructions (one-time)
+
+```bash
+cp AGENTS.md ~/.codex/AGENTS.md
+```
+
+This tells Codex how to use dbt and Redash together. It loads automatically every session.
+
+### 6. Run Codex and ask in plain English
+
+```bash
+codex
+```
+
+Try:
+
+```
+What dbt models are available?
+```
+```
+How many active buyers did we have last month, broken down by market?
+```
+```
+Create a Redash query showing weekly AB and AB2 trends for the last 3 months.
+```
+
+---
+
+## Cursor Setup
+
+Open Cursor Settings → MCP and add:
 
 ```json
 {
   "mcpServers": {
-    "dbt-analysis": {
-      "url": "https://dbt-analysis-mcp.your-company.example/mcp"
+    "dbt": {
+      "url": "https://<your-subdomain>.eu1.dbt.com/api/ai/v1/mcp/",
+      "headers": {
+        "Authorization": "Token <your-dbt-personal-access-token>",
+        "x-dbt-prod-environment-id": "<your-prod-environment-id>"
+      }
+    },
+    "redash": {
+      "command": "npx",
+      "args": ["-y", "@suthio/redash-mcp"],
+      "env": {
+        "REDASH_URL": "https://redash.your-company.example/",
+        "REDASH_API_KEY": "<your-redash-api-key>"
+      }
     }
   }
 }
 ```
 
-## Local Development Setup
+---
 
-```bash
-cd /Users/Pagadala/dbt-analysis-mcp-server
-python3 -m venv .venv
-source .venv/bin/activate
-pip install -e .
-cp .env.example .env
-```
+## What Codex can do for you
 
-Edit `.env` and set:
-
-```bash
-DBT_PROJECT_DIR=/absolute/path/to/your/dbt/project
-DBT_PATH=dbt
-```
-
-If your dbt executable is inside a virtual environment, use its absolute path:
-
-```bash
-DBT_PATH=/absolute/path/to/.venv/bin/dbt
-```
-
-## Run Locally
-
-```bash
-cd /Users/Pagadala/dbt-analysis-mcp-server
-source .venv/bin/activate
-set -a
-source .env
-set +a
-dbt-analysis-mcp
-```
-
-The server uses MCP Streamable HTTP. By default, the endpoint is typically:
-
-```text
-http://127.0.0.1:8000/mcp
-```
-
-## Local Cursor MCP Config
-
-Add this in Cursor Settings → MCP:
-
-```json
-{
-  "mcpServers": {
-    "dbt-analysis": {
-      "url": "http://127.0.0.1:8000/mcp"
-    }
-  }
-}
-```
-
-Start the local server before using the MCP tools in Cursor.
-
-## Team Quickstart
-
-For most Cursor users, share `config/cursor.hosted.example.json` with the real hosted URL.
-
-For local per-user development:
-
-```bash
-scripts/install-local.sh
-scripts/check-dbt.sh
-scripts/run-local.sh
-```
-
-For a centrally hosted service, use `Dockerfile`, `docker-compose.example.yml`, and `config/cursor.hosted.example.json`.
-
-## Security Notes
-
-This server does not expose arbitrary shell execution. All dbt commands are built from allowlisted Python functions and executed without a shell.
-
-`dbt_run_analysis` is disabled by default because `dbt run` can create or replace relations in the warehouse. Enable it only for trusted local use:
-
-```bash
-ALLOW_DBT_RUN=true
-```
+| Ask Codex | What happens |
+|-----------|-------------|
+| "What models exist for buyers / suppliers / orders?" | Calls `get_mart_models` and explains each one |
+| "How many AB and AB2 last quarter by market?" | Discovers the right model, writes Redshift SQL, returns results |
+| "Create a Redash query for weekly AB trends" | Writes SQL → saves query → validates it → creates a chart |
+| "Build a dashboard for the RFQ funnel" | Creates Redash query + visualization + dashboard in one go |
+| "What's the grain of the active_buyers model?" | Calls `get_model_details` and explains the row-level definition |
+| "Show me the SQL behind the AB2 metric" | Fetches compiled SQL from the dbt Semantic Layer |
