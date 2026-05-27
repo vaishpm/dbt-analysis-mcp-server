@@ -33,6 +33,7 @@ export function ChatView() {
   const [loading, setLoading] = useState(false);
   const [agentId, setAgentId] = useState<string | null>(null);
   const [activeTool, setActiveTool] = useState<string | null>(null);
+  const [startupStatus, setStartupStatus] = useState<string | null>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const abortRef = useRef<AbortController | null>(null);
@@ -64,6 +65,7 @@ export function ChatView() {
       setInput("");
       setLoading(true);
       setActiveTool(null);
+      setStartupStatus("Starting agent…");
 
       const assistantId = nextId();
       setMessages((prev) => [...prev, { id: assistantId, role: "assistant", content: "" }]);
@@ -112,7 +114,9 @@ export function ChatView() {
               if (event.type === "agent_id" && event.agentId) {
                 setAgentId(event.agentId);
                 sessionStorage.setItem("agentId", event.agentId);
+                setStartupStatus("Thinking…");
               } else if (event.type === "text" && event.text) {
+                setStartupStatus(null);
                 setActiveTool(null);
                 setMessages((prev) =>
                   prev.map((m) =>
@@ -130,8 +134,10 @@ export function ChatView() {
               } else if (event.type === "error") {
                 throw new Error(event.message ?? "Agent error");
               }
-            } catch {
-              // skip unparseable lines
+            } catch (parseErr) {
+              // Only skip JSON parse errors, re-throw real errors
+              if (parseErr instanceof SyntaxError) continue;
+              throw parseErr;
             }
           }
         }
@@ -147,6 +153,7 @@ export function ChatView() {
         );
       } finally {
         setActiveTool(null);
+        setStartupStatus(null);
         setLoading(false);
       }
     },
@@ -217,10 +224,10 @@ export function ChatView() {
             {messages.map((msg) => (
               <MessageBubble key={msg.id} message={msg} activeTool={activeTool} />
             ))}
-            {loading && activeTool && (
+            {loading && (activeTool || startupStatus) && (
               <div className={styles.toolBadge}>
                 <span className={styles.spinner} />
-                Calling <code>{activeTool}</code>…
+                {activeTool ? <>Calling <code>{activeTool}</code>…</> : startupStatus}
               </div>
             )}
             <div ref={bottomRef} />
