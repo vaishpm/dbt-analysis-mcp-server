@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-REPO="https://raw.githubusercontent.com/vaishpm/dbt-analysis-mcp-server/main"
+REPO="https://raw.githubusercontent.com/visable-dev/dbt-analysis-mcp-server/main"
 CODEX_HOME="${CODEX_HOME:-$HOME/.codex}"
 
 echo "Setting up Codex for dbt + Redash analysis..."
@@ -34,7 +34,7 @@ if [[ ${#missing[@]} -gt 0 ]]; then
     esac
   done
   echo ""
-  echo "Then re-run: curl -fsSL https://raw.githubusercontent.com/vaishpm/dbt-analysis-mcp-server/main/scripts/install.sh | bash"
+  echo "Then re-run: curl -fsSL https://raw.githubusercontent.com/visable-dev/dbt-analysis-mcp-server/main/scripts/install.sh | bash"
   exit 1
 fi
 
