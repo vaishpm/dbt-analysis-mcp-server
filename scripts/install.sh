@@ -3,6 +3,8 @@ set -euo pipefail
 
 REPO="https://raw.githubusercontent.com/visable-dev/dbt-analysis-mcp-server/main"
 CODEX_HOME="${CODEX_HOME:-$HOME/.codex}"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 
 echo "Setting up Codex for dbt + Redash analysis..."
 
@@ -33,14 +35,19 @@ if [[ ${#missing[@]} -gt 0 ]]; then
   done
   echo ""
   echo "Ask the analytics team for these values, then re-run:"
-  echo "  curl -fsSL $REPO/scripts/install.sh | bash"
+  echo "  bash scripts/install.sh"
   exit 1
 fi
 
 # Install config and agent instructions
 mkdir -p "$CODEX_HOME"
-curl -fsSL "$REPO/config/codex.example.toml" -o "$CODEX_HOME/config.toml"
-curl -fsSL "$REPO/AGENTS.md"                 -o "$CODEX_HOME/AGENTS.md"
+if [[ -f "$REPO_ROOT/config/codex.example.toml" && -f "$REPO_ROOT/AGENTS.md" ]]; then
+  cp "$REPO_ROOT/config/codex.example.toml" "$CODEX_HOME/config.toml"
+  cp "$REPO_ROOT/AGENTS.md" "$CODEX_HOME/AGENTS.md"
+else
+  curl -fsSL "$REPO/config/codex.example.toml" -o "$CODEX_HOME/config.toml"
+  curl -fsSL "$REPO/AGENTS.md"                 -o "$CODEX_HOME/AGENTS.md"
+fi
 
 echo ""
 echo "Done! Start Codex and ask anything:"
