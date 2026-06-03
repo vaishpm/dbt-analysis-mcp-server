@@ -16,25 +16,24 @@ if ! command -v codex &>/dev/null; then
   npm install -g @openai/codex
 fi
 
-# Check required env vars
+# Check required env vars — DBT_PROD_ENV_ID is hardcoded in the config (15703)
 missing=()
 [[ -z "${DBT_AUTH_HEADER:-}" ]] && missing+=("DBT_AUTH_HEADER")
-[[ -z "${DBT_PROD_ENV_ID:-}" ]] && missing+=("DBT_PROD_ENV_ID")
 [[ -z "${REDASH_API_KEY:-}" ]]  && missing+=("REDASH_API_KEY")
 
 if [[ ${#missing[@]} -gt 0 ]]; then
   echo ""
-  echo "Missing environment variables. Add these to your ~/.zshrc before running:"
+  echo "Missing environment variables. Add these to your ~/.zshrc and run 'source ~/.zshrc':"
   echo ""
   for var in "${missing[@]}"; do
     case "$var" in
-      DBT_AUTH_HEADER)  echo "  export DBT_AUTH_HEADER=\"token <your-dbt-personal-access-token>\"" ;;
-      DBT_PROD_ENV_ID)  echo "  export DBT_PROD_ENV_ID=\"<your-prod-environment-id>\"" ;;
-      REDASH_API_KEY)   echo "  export REDASH_API_KEY=\"<your-redash-api-key>\"" ;;
+      DBT_AUTH_HEADER) echo "  export DBT_AUTH_HEADER=\"token <your-dbt-personal-access-token>\"" ;;
+      REDASH_API_KEY)  echo "  export REDASH_API_KEY=\"<your-redash-api-key>\"" ;;
     esac
   done
   echo ""
-  echo "Then re-run: curl -fsSL https://raw.githubusercontent.com/visable-dev/dbt-analysis-mcp-server/main/scripts/install.sh | bash"
+  echo "Ask the analytics team for these values, then re-run:"
+  echo "  curl -fsSL $REPO/scripts/install.sh | bash"
   exit 1
 fi
 

@@ -14,13 +14,13 @@
 # Gives Codex access to your dbt models, metrics, lineage, and SQL generation.
 # Users do not need local dbt credentials; auth is handled via the token below.
 [mcp_servers.dbt]
-url = "https://<your-subdomain>.eu1.dbt.com/api/ai/v1/mcp/"
+url = "https://jg844.eu1.dbt.com/api/ai/v1/mcp/"
 enabled = true
 tool_timeout_sec = 60
 
 [mcp_servers.dbt.http_headers_env_vars]
 "Authorization" = "DBT_AUTH_HEADER"               # export DBT_AUTH_HEADER="token <your-personal-access-token>"
-"x-dbt-prod-environment-id" = "DBT_PROD_ENV_ID"   # export DBT_PROD_ENV_ID="<your-prod-environment-id>"
+"x-dbt-prod-environment-id" = "DBT_PROD_ENV_ID"   # export DBT_PROD_ENV_ID="15703"
 
 # ── Redash (local stdio MCP) ──────────────────────────────────────────────────
 # Gives Codex access to Redash queries, dashboards, and visualizations.
@@ -30,5 +30,5 @@ args = ["-y", "@suthio/redash-mcp"]
 enabled = true
 
 [mcp_servers.redash.env]
-REDASH_URL = "https://redash.your-company.example/"
+REDASH_URL = "https://redash.visable.com/"
 REDASH_API_KEY = "${REDASH_API_KEY}"      # export REDASH_API_KEY=<your-api-key>

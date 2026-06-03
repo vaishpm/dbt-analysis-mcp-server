@@ -57,11 +57,12 @@ Add these to `~/.zshrc` and run `source ~/.zshrc`:
 
 ```bash
 export DBT_AUTH_HEADER="token <your-dbt-personal-access-token>"
-export DBT_PROD_ENV_ID="<your-prod-environment-id>"
+export DBT_PROD_ENV_ID="15703"
 export REDASH_API_KEY="<your-redash-api-key>"
 ```
 
-Ask the analytics team for these values.
+Ask the analytics team for your dbt personal access token and Redash API key.
+`DBT_PROD_ENV_ID` is always `15703` — copy it exactly as shown.
 
 > **Requires Node.js.** Install from https://nodejs.org if `codex` isn't found.
 
