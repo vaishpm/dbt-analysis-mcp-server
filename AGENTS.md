@@ -27,7 +27,6 @@ If the script exits with missing env vars, tell the user exactly which ones are 
 
 ```bash
 export DBT_AUTH_HEADER="token <your-dbt-personal-access-token>"
-export DBT_PROD_ENV_ID="<your-prod-environment-id>"
 export REDASH_API_KEY="<your-redash-api-key>"
 ```
 

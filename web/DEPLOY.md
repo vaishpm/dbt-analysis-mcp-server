@@ -13,8 +13,8 @@ Set environment variables in the Vercel dashboard (Settings → Environment Vari
 |---|---|
 | `CURSOR_API_KEY` | cursor.com/dashboard/integrations |
 | `DBT_AUTH_HEADER` | `token <your-dbt-pat>` |
-| `DBT_PROD_ENV_ID` | dbt Cloud environment ID |
-| `DBT_MCP_URL` | `https://<subdomain>.eu1.dbt.com/api/ai/v1/mcp/` |
+| `DBT_PROD_ENV_ID` | `15703` |
+| `DBT_MCP_URL` | `https://jg844.eu1.dbt.com/api/ai/v1/mcp/` |
 | `REDASH_URL` | `https://redash.visable.com/` |
 | `REDASH_API_KEY` | Redash → Profile → API Key |
 | `INTERNAL_ACCESS_TOKEN` | Choose any shared secret string |

@@ -41,15 +41,15 @@ Quit Cursor completely (`Cmd+Q`) and reopen it. The rules are now active in ever
 
 ## Option 3 — Codex Setup (one-time, ~2 minutes)
 
-### 1. Clone the repo and let Codex set itself up
+### 1. Clone the repo and run the installer
 
 ```bash
 git clone https://github.com/visable-dev/dbt-analysis-mcp-server
 cd dbt-analysis-mcp-server
-codex "set me up"
+bash scripts/install.sh
 ```
 
-Codex reads `AGENTS.md` and runs `scripts/install.sh` automatically — it installs the Codex CLI (if needed), wires up dbt + Redash as MCP tools, and tells you which credentials are still missing.
+The installer installs Codex CLI if needed, wires up dbt + Redash as MCP tools, and tells you which credentials are still missing.
 
 ### 2. Add missing credentials (if prompted)
 
@@ -57,12 +57,10 @@ Add these to `~/.zshrc` and run `source ~/.zshrc`:
 
 ```bash
 export DBT_AUTH_HEADER="token <your-dbt-personal-access-token>"
-export DBT_PROD_ENV_ID="15703"
 export REDASH_API_KEY="<your-redash-api-key>"
 ```
 
 Ask the analytics team for your dbt personal access token and Redash API key.
-`DBT_PROD_ENV_ID` is always `15703` — copy it exactly as shown.
 
 > **Requires Node.js.** Install from https://nodejs.org if `codex` isn't found.
 

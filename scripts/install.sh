@@ -16,7 +16,7 @@ if ! command -v codex &>/dev/null; then
   npm install -g @openai/codex
 fi
 
-# Check required env vars — DBT_PROD_ENV_ID is hardcoded in the config (15703)
+# Check required env vars. The dbt prod environment ID is baked into config/codex.example.toml.
 missing=()
 [[ -z "${DBT_AUTH_HEADER:-}" ]] && missing+=("DBT_AUTH_HEADER")
 [[ -z "${REDASH_API_KEY:-}" ]]  && missing+=("REDASH_API_KEY")

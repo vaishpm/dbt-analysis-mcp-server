@@ -18,9 +18,11 @@ url = "https://jg844.eu1.dbt.com/api/ai/v1/mcp/"
 enabled = true
 tool_timeout_sec = 60
 
+[mcp_servers.dbt.http_headers]
+"x-dbt-prod-environment-id" = "15703"
+
 [mcp_servers.dbt.http_headers_env_vars]
 "Authorization" = "DBT_AUTH_HEADER"               # export DBT_AUTH_HEADER="token <your-personal-access-token>"
-"x-dbt-prod-environment-id" = "DBT_PROD_ENV_ID"   # export DBT_PROD_ENV_ID="15703"
 
 # ── Redash (local stdio MCP) ──────────────────────────────────────────────────
 # Gives Codex access to Redash queries, dashboards, and visualizations.
