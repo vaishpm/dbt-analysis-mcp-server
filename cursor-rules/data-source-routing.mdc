@@ -38,10 +38,18 @@ alwaysApply: true
 - `companies.companies`: filter `is_deleted = false` by default; use `supplier_facts_uuid` as primary join key; `platform_ep` / `platform_wlw` for platform membership
 - `supplier_offers.offers`: filter `delete_time IS NULL` for active offers; `publish_time IS NOT NULL` for published offers; `supplier_id` links to `companies.companies.supplier_facts_uuid`
 - `references.ref_identifiers_bridge`: use `wlw_supplier_facts_uuid`, `ep_supplier_facts_uuid`, `customer_id`, `accounts_id`, `europages_id`, `company_id` to bridge IDs; `industry_en` / `industry_de` / `industry_fr` for industry labels
+- `reporting.fact_direct_requests`: use for Direct Requests funnel analysis; count created requests with `COUNT(DISTINCT id)`, quality requests with `is_quality = true`, supplier replies with `is_answered = true` or `first_reply_from_supplier_at IS NOT NULL`, positive replies with `LOWER(response_type) = 'positive'`, RFQ conversions with `rfq_id IS NOT NULL`, and purchaser-selected RFQ conversions with `has_purchaser_selected_convert_to_rfq = true`
 - `reporting.fact_request_for_quotes`: use for RFQ-related analysis by default; count verified RFQs with `COUNT(DISTINCT rfq_id)` where `is_verified = true`; use `rfq_created_at` for RFQ creation month, `rfq_platform` for platform, `supplier_uuid` for supplier joins, and `supplier_response_type` for RFQ response/connection classification
 - Positive connections: include both direct requests and RFQs. For direct requests use `reporting.fact_direct_requests` where `first_reply_from_supplier_at IS NOT NULL` and `LOWER(response_type) LIKE 'positive%'`; for RFQs use `reporting.fact_request_for_quotes` where `first_reply_from_supplier_at IS NOT NULL` and `LOWER(supplier_response_type) LIKE 'positive%'`
 - `reporting.fact_rfq_qdr_requests`: use only when the user explicitly asks for combined QDR/RFQ high-relevance request logic; use `is_rfq_self_match`, `is_rfq_auto_match`, `is_qdr` to distinguish event types; count `matching_id` for RFQ match events, `direct_request_id` for QDR events
 - GBQ tracking facts: always filter by `date`, set `trafficsource = 'external'`, restrict `hostname` to `%wlw%` or `%europages%`; join to `reporting.dim_*` tables via `_sk` surrogate keys
+
+## Direct Requests funnel playbook
+- If the user asks to create, automate, or deep dive a Direct Requests funnel, use `reporting.fact_direct_requests` and first confirm the model grain/columns with `get_model_details`.
+- If time range or split is missing, ask one concise clarification; otherwise default to last 6 months and `platform`.
+- Default breakdowns: `platform`, `country`, `request_origin`, `request_source_type`, `conversion_page`, `channel`, `device`, and `request_type`.
+- Always show counts plus conversion rates and identify the largest drop-off step. Add `business_day_reply_duration_hours` for supplier reply SLA analysis.
+- For reusable automation, create a Redash query/dashboard after validating the SQL.
 
 ## Hard rules
 - Never query raw or staging tables — only `metrics_layer`, `reporting`, `companies`, `supplier_offers`, `ontology`, and `references`

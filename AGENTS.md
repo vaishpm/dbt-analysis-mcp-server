@@ -210,6 +210,73 @@ This ensures the dashboard layout is correct without needing manual drag-and-dro
 
 ---
 
+### Direct Requests Funnel Analysis
+Source table: `reporting.fact_direct_requests`
+
+Use this playbook whenever the user asks for Direct Requests funnel, request drop-off, supplier replies, positive connections, reply SLA, or Direct Requests automation.
+
+Before writing SQL, call `get_model_details` for `fact_direct_requests` and confirm the current grain and columns. The expected grain is one direct request (`id`) with request metadata, supplier reply fields, GA attribution, and optional RFQ conversion fields.
+
+If the user does not specify both time range and breakdown, ask one concise clarification: "Which time range and split should I use, for example last 6 months by platform or market?" If only one is missing, use a sensible default: last 6 months for time range and `platform` for split.
+
+Default funnel stages:
+1. Direct requests created: `COUNT(DISTINCT id)`
+2. Quality direct requests: `is_quality = true`
+3. Supplier replied: `is_answered = true` or `first_reply_from_supplier_at IS NOT NULL`
+4. Positive supplier reply: `LOWER(response_type) = 'positive'`
+5. Converted to RFQ: `rfq_id IS NOT NULL`
+6. Purchaser selected convert to RFQ: `has_purchaser_selected_convert_to_rfq = true`
+
+Default deep-dive workflow:
+- Start with monthly or weekly volume trend, depending on the requested period.
+- Show funnel counts and conversion rates from created requests to each later stage.
+- Break down by the requested dimension; prefer `platform`, `country`, `request_origin`, `request_source_type`, `conversion_page`, `channel`, `device`, and `request_type`.
+- Identify the largest drop-off step and the breakdown segment driving it.
+- Add SLA context when useful: median or average `business_day_reply_duration_hours` for answered requests.
+- If the user asks to automate or make it reusable, create a Redash query/dashboard using the standard Redash workflow.
+
+Default SQL pattern:
+
+```sql
+SELECT
+  DATE_TRUNC('month', date) AS month,
+  platform,
+  COUNT(DISTINCT id) AS direct_requests,
+  COUNT(DISTINCT CASE WHEN is_quality = true THEN id END) AS quality_direct_requests,
+  COUNT(DISTINCT CASE WHEN is_answered = true OR first_reply_from_supplier_at IS NOT NULL THEN id END) AS supplier_replied,
+  COUNT(DISTINCT CASE WHEN LOWER(response_type) = 'positive' THEN id END) AS positive_supplier_replies,
+  COUNT(DISTINCT CASE WHEN rfq_id IS NOT NULL THEN id END) AS converted_to_rfq,
+  COUNT(DISTINCT CASE WHEN has_purchaser_selected_convert_to_rfq = true THEN id END) AS purchaser_selected_convert_to_rfq,
+  ROUND(
+    100.0 * COUNT(DISTINCT CASE WHEN is_quality = true THEN id END)
+    / NULLIF(COUNT(DISTINCT id), 0),
+    2
+  ) AS quality_rate_pct,
+  ROUND(
+    100.0 * COUNT(DISTINCT CASE WHEN is_answered = true OR first_reply_from_supplier_at IS NOT NULL THEN id END)
+    / NULLIF(COUNT(DISTINCT CASE WHEN is_quality = true THEN id END), 0),
+    2
+  ) AS supplier_reply_rate_pct,
+  ROUND(
+    100.0 * COUNT(DISTINCT CASE WHEN LOWER(response_type) = 'positive' THEN id END)
+    / NULLIF(COUNT(DISTINCT CASE WHEN is_answered = true OR first_reply_from_supplier_at IS NOT NULL THEN id END), 0),
+    2
+  ) AS positive_reply_rate_pct
+FROM reporting.fact_direct_requests
+WHERE date >= DATEADD(month, -6, DATE_TRUNC('month', CURRENT_DATE))
+GROUP BY 1, 2
+ORDER BY 1, 2
+```
+
+Rules:
+- Use `COUNT(DISTINCT id)` for request counts.
+- Use `date` for period filtering and `created_at` only when timestamp precision is required.
+- For positive connections from Direct Requests, use `LOWER(response_type) = 'positive'`.
+- For supplier reply analysis, use `is_answered`, `first_reply_from_supplier_at`, and `business_day_reply_duration_hours`.
+- Never use raw request sources for this funnel unless the user explicitly asks for source-system debugging.
+
+---
+
 ### Unique Visitors (UV)
 Source table: `metrics_layer.ga_user_metrics`
 
