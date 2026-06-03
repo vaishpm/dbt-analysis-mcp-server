@@ -80,59 +80,11 @@ Create a Redash query showing weekly AB and AB2 for the last 3 months.
 Build a dashboard for the RFQ funnel.
 ```
 ```
-Create a Direct Requests funnel for the last 6 months by platform.
-```
-```
-Deep dive Direct Requests drop-off from created request to positive supplier reply by market.
-```
-```
-Automate a reusable Redash dashboard for Direct Requests funnel conversion and supplier reply SLA.
-```
-```
 What's the definition of AB2?
 ```
 ```
 Show me the SQL behind the active_buyers model.
 ```
-
----
-
-## Regular Analysis Playbooks
-
-The agent has built-in playbooks for recurring PM analysis. For Direct Requests funnel analysis, ask naturally:
-
-```
-Create a Direct Requests funnel for the last 6 months by platform.
-```
-
-The agent will use `reporting.fact_direct_requests`, validate the model schema, build the funnel stages, calculate conversion rates, identify the biggest drop-off, and create a Redash query or dashboard when you ask for a reusable view.
-
-Default Direct Requests funnel stages:
-
-| Stage | Logic |
-|-------|-------|
-| Direct requests created | `COUNT(DISTINCT id)` |
-| Quality direct requests | `is_quality = true` |
-| Supplier replied | `is_answered = true` or `first_reply_from_supplier_at IS NOT NULL` |
-| Positive supplier reply | `LOWER(response_type) = 'positive'` |
-| Converted to RFQ | `rfq_id IS NOT NULL` |
-| Purchaser selected RFQ conversion | `has_purchaser_selected_convert_to_rfq = true` |
-
-For recurring use, PMs should pull the latest rules and reinstall:
-
-```bash
-cd dbt-analysis-mcp-server
-git pull
-bash scripts/install.sh
-```
-
-Cursor users should also run:
-
-```bash
-curl -fsSL https://raw.githubusercontent.com/vaishpm/dbt-analysis-mcp-server/main/install-cursor-rules-remote.sh | bash
-```
-
-Restart Cursor after updating rules.
 
 ---
 
