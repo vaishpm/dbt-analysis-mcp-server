@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-REPO="https://raw.githubusercontent.com/visable-dev/dbt-analysis-mcp-server/main"
+REPO="https://raw.githubusercontent.com/vaishpm/dbt-analysis-mcp-server/main"
 CODEX_HOME="${CODEX_HOME:-$HOME/.codex}"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"

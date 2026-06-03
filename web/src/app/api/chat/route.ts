@@ -9,7 +9,7 @@ export const maxDuration = 300;
 const REPO_ROOT = process.env.REPO_ROOT ?? path.resolve(process.cwd(), "..");
 
 // Cloud runtime: repo the agent clones on Cursor-hosted VMs
-const GITHUB_REPO = process.env.GITHUB_REPO ?? "https://github.com/visable-dev/dbt-analysis-mcp-server";
+const GITHUB_REPO = process.env.GITHUB_REPO ?? "https://github.com/vaishpm/dbt-analysis-mcp-server";
 
 // Use cloud runtime on Vercel (no Cursor app installed), local runtime otherwise
 const USE_CLOUD = Boolean(process.env.VERCEL || process.env.USE_CLOUD_RUNTIME);

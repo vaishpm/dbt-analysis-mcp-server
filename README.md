@@ -25,7 +25,7 @@ Log in with the shared team password and start asking questions immediately — 
 ### 1. Clone the repo and run the installer
 
 ```bash
-git clone https://github.com/visable-dev/dbt-analysis-mcp-server
+git clone https://github.com/vaishpm/dbt-analysis-mcp-server
 bash dbt-analysis-mcp-server/install-cursor-rules.sh
 ```
 
@@ -44,7 +44,7 @@ Quit Cursor completely (`Cmd+Q`) and reopen it. The rules are now active in ever
 ### 1. Clone the repo and run the installer
 
 ```bash
-git clone https://github.com/visable-dev/dbt-analysis-mcp-server
+git clone https://github.com/vaishpm/dbt-analysis-mcp-server
 cd dbt-analysis-mcp-server
 bash scripts/install.sh
 ```
